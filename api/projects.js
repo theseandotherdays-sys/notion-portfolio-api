@@ -5,19 +5,28 @@ const notion = new Client({
 })
 
 module.exports = async (req, res) => {
-  const response = await notion.databases.query({
-    database_id: process.env.NOTION_DATABASE_ID,
-  })
+  try {
+    const db = await notion.databases.query({
+      database_id: process.env.NOTION_DATABASE_ID,
+    })
 
-  const projects = response.results.map((page) => ({
-    title: page.properties.Name?.title?.[0]?.plain_text || "",
-    description: page.properties.Description?.rich_text?.[0]?.plain_text || "",
-    image:
-      page.properties.Cover?.files?.[0]?.file?.url ||
-      page.properties.Cover?.files?.[0]?.external?.url ||
-      "",
-    url: page.properties.URL?.url || "",
-  }))
+    const items = db.results.map((page, i) => {
+      return {
+        title: page.properties?.Name?.title?.[0]?.plain_text || "",
+        image:
+          page.properties?.Image?.files?.[0]?.file?.url ||
+          page.properties?.Image?.files?.[0]?.external?.url ||
+          "",
+        url: page.properties?.URL?.url || "",
 
-  res.status(200).json(projects)
+        // IMPORTANT: stable coordinates (Cosmos feel starts here)
+        x: (i % 6) * 700 + 300,
+        y: Math.floor(i / 6) * 700 + 300,
+      }
+    })
+
+    res.status(200).json(items)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
 }
