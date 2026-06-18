@@ -13,13 +13,21 @@ module.exports = async (req, res) => {
     const items = db.results.map((page, i) => {
       return {
         title: page.properties?.Name?.title?.[0]?.plain_text || "",
+
         image:
-          page.properties?.Image?.files?.[0]?.file?.url ||
-          page.properties?.Image?.files?.[0]?.external?.url ||
+          page.properties?.Cover?.files?.[0]?.file?.url ||
+          page.properties?.Cover?.files?.[0]?.external?.url ||
+          page.properties?.Cover?.url ||
           "",
+
+        description:
+          page.properties?.Description?.rich_text?.[0]?.plain_text || "",
+
+        tags:
+          page.properties?.Tags?.multi_select?.map((t) => t.name) || [],
+
         url: page.properties?.URL?.url || "",
 
-        // IMPORTANT: stable coordinates (Cosmos feel starts here)
         x: (i % 6) * 700 + 300,
         y: Math.floor(i / 6) * 700 + 300,
       }
